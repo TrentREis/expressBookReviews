@@ -17,23 +17,27 @@ const authenticatedUser = (username, password) => {
 
 // only registered users can login
 regd_users.post("/login", (req, res) => {
-  const { username, password } = req.body;
-
-  if (!username || !password) {
-    return res.status(400).json({ message: "Username and password are required" });
-  }
-
-  if (!authenticatedUser(username, password)) {
-    return res.status(401).json({ message: "Invalid credentials" });
-  }
-
-  const accessToken = jwt.sign({ username }, secretKey, { expiresIn: '1h' });
-
-  // Optional: store in session if using express-session
-  req.session.authorization = { accessToken };
-
-  return res.status(200).json({ message: "Login successful", token: accessToken });
-});
+    const { username, password } = req.body;
+  
+    if (!username || !password) {
+      return res.status(400).json({ message: "Username and password are required" });
+    }
+  
+    if (!authenticatedUser(username, password)) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+  
+    const accessToken = jwt.sign({ username }, "your-secret-key", { expiresIn: '1h' });
+  
+    // Must include username for session auth to work!
+    req.session.authorization = {
+      username: username,
+      accessToken: accessToken
+    };
+  
+    return res.status(200).json({ message: "Login successful", token: accessToken });
+  });
+  
 
 // Add a book review
 regd_users.put("/auth/review/:isbn", (req, res) => {
@@ -66,6 +70,8 @@ regd_users.put("/auth/review/:isbn", (req, res) => {
       }
     });
   });
+  
+
 module.exports.authenticated = regd_users;
 module.exports.isValid = isValid;
 module.exports.users = users;
